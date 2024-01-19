@@ -1,0 +1,1246 @@
+```{r, results='asis'}
+#Mycorrplot function
+myggcorrplot <- function (corr, method = c("square", "circle"), type = c("full", 
+                                                                         "lower", "upper"), ggtheme = ggplot2::theme_minimal, title = "", 
+                          show.legend = TRUE, legend.title = "Corr", show.diag = FALSE, 
+                          colors = c("blue", "white", "red"), outline.color = "gray", 
+                          hc.order = FALSE, hc.method = "complete", lab = FALSE, lab_col = "black", 
+                          lab_size = 4, p.mat = NULL, sig.level = 0.05, insig = c("pch", 
+                                                                                  "blank"), pch = 4, pch.col = "black", pch.cex = 5, tl.cex = 15, 
+                          tl.col = "black", tl.srt = 45, lab.notsig="") 
+{
+  type <- match.arg(type)
+  method <- match.arg(method)
+  insig <- match.arg(insig)
+  if (!is.matrix(corr) & !is.data.frame(corr)) 
+    stop("Need a matrix or data frame!")
+  corr <- as.matrix(corr)
+  if (hc.order) {
+    ord <- ggcorrplot:::.hc_cormat_order(corr)
+    corr <- corr[ord, ord]
+    if (!is.null(p.mat)) 
+      p.mat <- p.mat[ord, ord]
+  }
+  if (type == "lower") {
+    corr <- ggcorrplot:::.get_lower_tri(corr, show.diag)
+    p.mat <- ggcorrplot:::.get_lower_tri(p.mat, show.diag)
+  }
+  else if (type == "upper") {
+    corr <- ggcorrplot:::.get_upper_tri(corr, show.diag)
+    p.mat <- ggcorrplot:::.get_upper_tri(p.mat, show.diag)
+  }
+  corr <- reshape2::melt(corr, na.rm = TRUE)
+  corr$pvalue <- rep(NA, nrow(corr))
+  corr$signif <- rep(NA, nrow(corr))
+  if (!is.null(p.mat)) {
+    p.mat <- reshape2::melt(p.mat, na.rm = TRUE)
+    corr$coef <- corr$value
+    corr$pvalue <- p.mat$value
+    corr$signif <- as.numeric(p.mat$value <= sig.level)
+    p.mat <- subset(p.mat, p.mat$value > sig.level)
+    if (insig == "blank") 
+      corr$value <- corr$value * corr$signif
+  }
+  corr$abs_corr <- abs(corr$value) * 10
+  p <- ggplot2::ggplot(corr, ggplot2::aes_string("Var1", "Var2", 
+                                                 fill = "value"))
+  if (method == "square") 
+    p <- p + ggplot2::geom_tile(color = outline.color)
+  else if (method == "circle") {
+    p <- p + ggplot2::geom_point(color = outline.color, shape = 21, 
+                                 ggplot2::aes_string(size = "abs_corr")) + ggplot2::scale_size(range = c(4, 
+                                                                                                         10)) + ggplot2::guides(size = FALSE)
+  }
+  p <- p + ggplot2::scale_fill_gradient2(low = colors[1], high = colors[3], 
+                                         mid = colors[2], midpoint = 0, limit = c(-1, 1), space = "Lab", 
+                                         name = legend.title) + ggtheme() + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = tl.srt, 
+                                                                                                                               vjust = 1, size = tl.cex, hjust = 1), axis.text.y = ggplot2::element_text(size = tl.cex)) + 
+    ggplot2::coord_fixed()
+  label <- as.character(round(corr[, "value"], 2))
+  label[label=="0"] <- lab.notsig
+  if (lab)
+    p <- p + ggplot2::geom_text(ggplot2::aes_string("Var1", 
+                                                    "Var2", label = "label"), color = lab_col, size = lab_size)
+  if (!is.null(p.mat) & insig == "pch") {
+    p <- p + ggplot2::geom_point(data = p.mat, ggplot2::aes_string("Var1", 
+                                                                   "Var2"), shape = pch, size = pch.cex, color = pch.col)
+  }
+  if (title != "") 
+    p <- p + ggplot2::ggtitle(title)
+  if (!show.legend) 
+    p <- p + ggplot2::theme(legend.position = "none")
+  p <- p + ggcorrplot:::.no_panel()
+  p
+}
+myggcorrplot(cordlqrpspearman,
+                               type="lower",
+                               lab=T,
+                               ggtheme = ggplot2::theme_classic,
+                               lab_size = 3,
+                               method="square",
+                               p.mat=p.matcordlqrp,
+                               insig="blank",
+                               lab.notsig = "NS",tl.cex=10)
+``` 
+ 
+
+```{r, results='asis'}
+dpupmeansdem %>%
+ggplot() +
+aes(y = meaninit, x =  etioldiagabb) +
+geom_boxplot(fill = "#112446",alpha=.5) +
+  geom_jitter()+
+  labs(x= "Diagnostic groups", y= "Baseline pupil diameter (mm)",title="Baseline pupil diameter")+
+theme_minimal()
+```
+
+```{r, results='asis'}
+dpupmeansdem %>%
+ ggplot() +
+ aes(y = meanend, x =  etioldiagabb) +
+ geom_boxplot(fill = "#112446",alpha=.5) +
+  geom_jitter()+
+  labs(x= "Diagnostic groups", y= "Peak constriction pupil diameter (mm)",title="Peak constriction pupil diameter")+
+ theme_minimal()
+```
+
+```{r, results='asis'}
+dpupmeansdem %>%
+  ggplot() +
+  aes(y = meandelta, x =  etioldiagabb) +
+  geom_boxplot(fill = "#112446",alpha=.5) +
+  geom_jitter()+
+  labs(x= "Diagnostic groups", y= "Delta (percent)",title="Delta (relative pupil change)")+
+  theme_minimal()
+```
+
+```{r, results='asis'}
+dpupmeansdem %>%
+ ggplot() +
+ aes(y = meanlat, x =  etioldiagabb) +
+ geom_boxplot(fill = "#112446",alpha=.5) +
+  geom_jitter()+
+  labs(x= "Diagnostic groups", y= "Latency (secs)",title="Latency")+
+ theme_minimal()
+```
+
+
+```{r, results='asis'}
+dpupmeansdem %>%
+ ggplot() +
+ aes(y = meanconvel, x =  etioldiagabb) +
+ geom_boxplot(fill = "#112446",alpha=.5) +
+geom_jitter()+
+  labs(x= "Diagnostic groups", y= "Average constriction velocity (mm/sec)",title="Average constriction velocity")+
+ theme_minimal()
+```
+
+```{r, results='asis'}
+dpupmeansdem %>%
+ ggplot() +
+ aes(y = meanmaxcv, x =  etioldiagabb) +
+ geom_boxplot(fill = "#112446",alpha=.5) +
+  geom_jitter()+
+  labs(x= "Diagnostic groups", y= "Maximum constriction velocity (mm/sec)",title="Maximum constriction velocity")+
+ theme_minimal()
+```
+
+```{r, results='asis'}
+dpupmeansdem %>%
+ ggplot() +
+ aes(y = meandilvel, x =  etioldiagabb) +
+ geom_boxplot(fill = "#112446",alpha=.5) +
+  geom_jitter()+
+  labs(x= "Diagnostic groups", y= "Average dilation velocity",title="Average dilation velocity")+
+ theme_minimal()
+```
+
+
+```{r, results='asis'}
+dpupmeansdem %>%
+ ggplot() +
+ aes(y = meant75, x =  etioldiagabb) +
+ geom_boxplot(fill = "#112446",alpha=.5) +
+  geom_jitter()+
+  labs(x= "Diagnostic groups", y= "T75 (secs)",title="T75 (time from peak constriciton till 75 % of basleine value)")+
+ theme_minimal()
+```
+
+
+# Main analysis
+
+## Diagnostic performance
+
+Diagnostic prediction models are built using logistic regression with age and sex as covariates by incorporating all pupillometric variables.
+Multicollinearity is investigated by examining variance inflation factors. Sparse models are investigated by eliminating variables with variance inflation factors indicating problematic multicollinearity. Sensitivity analyses are carried out using 10-fold 1000 times cross validation.
+
+An AUROCC analysis is carried out for all models evaluating the diagnostic performance in the following groups:
+
+
+#### AD vs. healthy(with all qLRP parameters, sex and age not included)
+
+```{r,results='asis'}
+#Create function that produces a ROC curve, calculates AUC for a ROC object and returns the 95 % CI for the AUC as well
+
+aucci<-function(x) {
+  auc<-auc(x)
+  ci<- ci.auc(x)
+  plot(x, main = "ROC Curve", print.auc = TRUE)
+  return(list(AUC = auc, CI = ci))
+  }
+
+#modeladhc<-glm(etioldiagny~meaninit+meanend+meandelta+meanlat+meanconvel+meanmaxcv+meandilvel+meant75,data=dpupadhealthy,family="binomial")
+summ(modeladhc,vifs=T,exp=T, confint=T,digits=5)
+#predictionadhc <- predict(modeladhc, dpupadhealthy, 
+#                      type="response")
+#as.numeric(predictionadhc)
+#predsadhc<-ifelse(predictionadhc>0.5,1,0)
+#rocadhc <- roc(dpupadhealthy$etioldiagny, predictionadhc,subset=(etioldiagny==1|etioldiagny==0))
+aucci(rocadhc)
+#cadhc<-confusionMatrix(table(predsadhc, dpupadhealthy$etioldiagny),positive="1")
+cadhc
+```
+
+#### AD vs. healthy (sparse qLRP parameters (excluding peak constriction and max ), with sex and age)
+
+```{r,results='asis'}
+#modeladhcspa<-glm(etioldiagny~meaninit+meandelta+meanlat+meanconvel+meandilvel+meant75,data=dpupadhealthy,family="binomial")
+summ(modeladhcasspa,vifs=T,exp=T, confint=T,digits=5)
+#predictionadhcspa <- predict(modeladhcspa, dpupadhealthy, 
+#                          type="response")
+#predsadhcspa<-ifelse(predictionadhcspa>0.5,1,0)
+#rocadhcspa <- roc( dpupadhealthy$etioldiagny, predictionadhcspa,subset=(etioldiagny==1|etioldiagny==0))
+aucci(rocadhcasspa)
+
+#cadhcspa<-confusionMatrix(table(predsadhcspa, dpupadhealthy$etioldiagny),positive="1")
+cadhcasspa
+```
+
+#### AUC 10-fold 1000 times cross-validation for sparse model (including sex and age)
+
+```{r,results='asis'}
+
+#Cross validation of AD vs. healthy w. age and sex sparse
+
+#With ROC as performance metric
+#set.seed(123)
+#cv.labelsadhealthyroc<-as.factor(dpupadhealthy$etioldiagabb)
+#cv.10.foldsadhealthyroc<-createMultiFolds(cv.labelsadhealthyroc,k=10,times=1000)
+#trainControladhc <- trainControl(
+#  method="repeatedcv",
+#  number=10,repeats=1000,
+#  index=cv.10.foldsadhealthyroc,
+#  classProbs = TRUE,
+#  summaryFunction = twoClassSummary
+#)
+
+#Divide processors
+#cl<-makeCluster(3,type="SOCK")
+#registerDoSNOW(cl)
+
+# Train the model
+#modelcvadhealthyroc <- train(etioldiagabb~meaninit+meandelta+meanlat+meanconvel+meandilvel+meant75+age+sex,data=dpupadhealthy,
+#                          method='glm',
+#                          family="binomial",
+#                          metric = "ROC",
+#                          trControl = trainControladhc)
+print(modelcvadhealthyroc)
+```
+
+### Cut point analysis maximising specificity for a minimum of 85 % sensitivity
+
+```{r,results='markup'}
+#Cut point analysis sensitivity minimal 0.85
+#cpadhcasspa<-cutpointr(as.numeric(predictionadhcasspa),dpupadhealthy$etioldiagny,method = maximize_metric, metric = spec_constrain,constrain_metric = sensitivity,
+#                    min_constrain = 0.85)
+
+
+summary(cpadhcasspa)
+print(cpadhcasspa)
+
+#Bootstrapping confidence intervals example applied to all sparse models
+##With bootstrap CI for specificity AD vs. HC Model 2
+#set.seed(12)
+#cpspecadhcasspa<-cutpointr(as.numeric(predictionadhcasspa),dpupadhealthy$etioldiagny,method = maximize_metric, metric = spec_constrain,constrain_metric = sensitivity,
+#                       min_constrain = 0.85,boot_runs=2000)
+#cpspecadhcasspa
+#ciadhdspec<-boot_ci(cpspecadhcasspa, specificity, in_bag = F, alpha = 0.05)
+#ciadhdspec
+
+#With bootstrap CI for sensitivity AD vs. HC Model 2
+#set.seed(12)
+#cpsensadhcasspa<-cutpointr(as.numeric(predictionadhcasspa),dpupadhealthy$etioldiagny,method = maximize_metric, metric = sens_constrain,constrain_metric = specificity,
+#                          min_constrain = 0.85,boot_runs=2000)
+#cpsensadhcasspa
+#ciadhdsens<-boot_ci(cpsensadhcasspa, sensitivity, in_bag = F, alpha = 0.05)
+#ciadhdsens
+```
+
+### Cut point analysis maximising sensitivity for a minimum of 85 % specificity
+
+```{r,results='markup'}
+#Cut point analysis specifictity minimum 0.85
+#cpspeadhcasspa<-cutpointr(as.numeric(predictionadhcasspa),dpupadhealthy$etioldiagny,method = maximize_metric, metric = sens_constrain,constrain_metric = specificity,
+#                       min_constrain = 0.85)
+summary(cpspeadhcasspa)
+print(cpspeadhcasspa)
+```
+
+#### AD vs. healthy (all qLRP parameters+age+sex)
+
+```{r}
+#Logistic regression model for AD vs healthy with age and sex
+
+#modeladhcas<-glm(etioldiagny~meaninit+meanend+meandelta+meanlat+meanconvel+meanmaxcv+meandilvel+meant75+age+sex,data=dpupadhealthy,family="binomial")
+summ(modeladhcas,vifs=T,exp=T, confint=T,digits=5)
+#predictionadhcas <- predict(modeladhcas, dpupadhealthy, 
+#                          type="response")
+#predictionadhcas
+#predsadhcas<-ifelse(predictionadhcas>0.5,1,0)
+
+#rocadhcas <- roc( dpupadhealthy$etioldiagny, predictionadhcas,subset=(etioldiagny==1|etioldiagny==0))
+aucci(rocadhcas)
+
+#cadhcas<-confusionMatrix(table(predsadhcas, dpupadhealthy$etioldiagny),positive="1")
+cadhcas
+```
+
+
+
+#### AD vs. healthy (sparse qLRP parameters (excluding peak constriction and max ), with sex and age) (with splines, non-linear)
+
+```{r,results='asis'}
+#modeladhcasspacs<-glm(etioldiagny~ns(meaninit,df=6)+ns(meandelta,df=6)+ns(meanlat,df=6)+ns(meanconvel,df=6)+ns(meandilvel,df=6)+ns(meant75,df=6)+age+sex,data=dpupadhealthy,family="binomial")
+summ(modeladhcasspacs,vifs=T,exp=T, confint=T,digits=5)
+#rocadhcasspacs <- roc( dpupadhealthy$etioldiagny, predictionadhcasspacs,subset=(etioldiagny==1|etioldiagny==0))
+aucci(rocadhcasspacs)
+#cadhcasspacs<-confusionMatrix(table(predsadhcasspacs, dpupadhealthy$etioldiagny),positive="1")
+cadhcasspacs
+```
+
+### AD vs. DLB
+
+#### AD vs. DLB (with all qLRP parameters, sex and age not included)
+
+```{r,results='asis'}
+#modeladdlb<-glm(etioldiagny~meaninit+meanend+meandelta+meanlat+meanconvel+meanmaxcv+meandilvel+meant75,data=dpupaddlb,family="binomial")
+summ(modeladdlb,vifs=T,exp=T, confint=T,digits=5)
+#redictionaddlb <- predict(modeladdlb, dpupaddlb, 
+#                          type="response")
+#predsaddlb<-ifelse(predictionaddlb>0.5,1,0)
+
+#rocaddlb <- roc( dpupaddlb$etioldiagny, predictionaddlb,subset=(etioldiagny==1|etioldiagny==0))
+
+aucci(rocaddlb)
+#caddlb<-confusionMatrix(table(predsaddlb, dpupaddlb$etioldiagny),positive="1")
+caddlb
+```
+
+#### AD vs. DLB (sparse qLRP parameters (excluding peak constriction and max ), with sex and age)
+
+```{r,results='asis'}
+#modeladdlbspa<-glm(etioldiagny~meaninit+meandelta+meanlat+meanconvel+meandilvel+meant75,data=dpupaddlb,family="binomial")
+#predictionaddlbspa <- predict(modeladdlbspa, dpupaddlb, 
+#                           type="response")
+#predictionaddlbspa
+#predsaddlbspa<-ifelse(predictionaddlbspa>0.5,1,0)
+#rocaddlbspa <- roc(dpupaddlb$etioldiagny, predictionaddlbspa,subset=(etioldiagny==1|etioldiagny==0))
+#caddlbspa<-confusionMatrix(table(predsaddlbspa,dpupaddlb$etioldiagny),positive="1")
+
+
+summ(modeladdlbasspa,vifs=T,exp=T, confint=T,digits=5)
+aucci(rocaddlbasspa)
+caddlbasspa
+```
+
+#### AUC 10-fold 1000 times cross-validation for sparse model (including sex and age)
+
+```{r,results='asis'}
+
+#Cross validation of AD vs. DLB w. age and sex sparse
+#With ROC as performance metric
+#set.seed(123)
+#cv.labelsaddlbroc<-as.factor(dpupaddlb$etioldiagabb)
+#cv.10.foldsaddlbroc<-createMultiFolds(cv.labelsaddlbroc,k=10,times=1000)
+#trainControladdlbroc <- trainControl(
+#  method="repeatedcv",
+#  number=10,repeats=1000,
+#  index=cv.10.foldsaddlbroc,
+#  classProbs = TRUE,
+#  summaryFunction = twoClassSummary
+#)
+
+# Train the model
+#modelcvaddlbroc <- train(etioldiagabb~meaninit+meandelta+meanlat+meanconvel+meandilvel+meant75+age+sex,data=dpupaddlb,
+#                             method='glm',
+#                             family="binomial",
+#                             metric = "ROC",
+#                             trControl = trainControladdlbroc)
+
+print(modelcvaddlbroc)
+```
+
+#### Cut point analysis maximising specificity for a minimum of 85 % sensitivity
+
+```{r,results='markup'}
+#Cut point analysis sensitivity minimal 0.85
+#cpaddlbasspa<-cutpointr(as.numeric(predictionaddlbasspa),dpupaddlb$etioldiagny,method = maximize_metric, metric = spec_constrain,constrain_metric = sensitivity,
+#                       min_constrain = 0.85)
+summary(cpaddlbasspa)
+print(cpaddlbasspa)
+```
+
+#### Cut point analysis maximising sensitivity for a minimum of 85 % specificity
+
+```{r,results='markup'}
+
+#Cut point analysis specifictity minimum 0.85
+#cpspeaddlbasspa<-cutpointr(as.numeric(predictionaddlbasspa),dpupaddlb$etioldiagny,method = maximize_metric, metric = sens_constrain,constrain_metric = #specificity,
+#                        min_constrain = 0.85)
+summary(cpspeaddlbasspa)
+print(cpspeaddlbasspa)
+```
+
+#### AD vs. DLB (all qLRP parameters+age+sex)
+
+```{r}
+#modeladdlbas<-glm(etioldiagny~meaninit+meanend+meandelta+meanlat+meanconvel+meanmaxcv+meandilvel+meant75+age+sex,data=dpupaddlb,family="binomial")
+#predictionaddlbas <- predict(modeladdlbas, dpupaddlb, 
+#                           type="response")
+#predsaddlbas<-ifelse(predictionaddlbas>0.5,1,0)
+
+#rocaddlbas <- roc( dpupaddlb$etioldiagny, predictionaddlbas,subset=(etioldiagny==1|etioldiagny==0))
+summ(modeladdlbas,vifs=T,exp=T, confint=T,digits=5)
+
+aucci(rocaddlbas)
+#caddlbas<-confusionMatrix(table(predsaddlbas, dpupaddlb$etioldiagny),positive="1")
+caddlbas
+```
+
+
+#### AD vs. DLB (sparse qLRP parameters (excluding peak constriction and max ), with sex and age) (with splines, non-linear)
+
+```{r,results='asis'}
+#modeladdlbasspacs<-glm(etioldiagny~ns(meaninit,df=6)+ns(meandelta,df=6)+ns(meanlat,df=6)+ns(meanconvel,df=6)+ns(meandilvel,df=6)+ns(meant75,df=6)+age+sex,data=dpupaddlb,family="binomial")
+#predictionaddlbasspacs <- predict(modeladdlbasspacs, dpupaddlb, 
+#                                type="response")
+#predsaddlbasspacs<-ifelse(predictionaddlbasspacs>0.6,1,0)
+
+#rocaddlbasspacs <- roc( dpupaddlb$etioldiagny, predictionaddlbasspacs,subset=(etioldiagny==1|etioldiagny==0))
+
+#caddlbasspacs<-confusionMatrix(table(predsaddlbasspacs, dpupaddlb$etioldiagny),positive="1")
+
+summ(modeladdlbasspacs,vifs=T,exp=T, confint=T,digits=5)
+aucci(rocaddlbasspacs)
+caddlbasspacs
+```
+
+### AD vs. Mixed (Mixed Ad+VaD and VaD) 
+
+#### AD vs. Mixed (Mixed Ad+VaD and VaD) (with all qLRP parameters, sex and age not included)
+
+```{r,results='asis'}
+#modeladvadmix<-glm(etioldiagny~meaninit+meanend+meandelta+meanlat+meanconvel+meanmaxcv+meandilvel+meant75,data=dpupadvadmix,family="binomial")
+#predictionadvadmix <- predict(modeladvadmix, dpupadvadmix, 
+#                          type="response")
+#predsadvadmix<-ifelse(predictionadvadmix>0.5,1,0)
+#rocadvadmix <- roc( dpupadvadmix$etioldiagny, predictionadvadmix,subset=(etioldiagny==1|etioldiagny==0))
+#cadvadmix<-confusionMatrix(table(predsadvadmix, dpupadvadmix$etioldiagny),positive="1")
+summ(modeladvadmix,vifs=T,exp=T, confint=T,digits=5)
+aucci(rocadvadmix)
+cadvadmix
+```
+
+#### AD vs. Mixed (Mixed Ad+VaD and VaD) (sparse qLRP parameters (excluding peak constriction and max ), with sex and age)
+
+```{r,results='asis'}
+#modeladvadmixasspa<-glm(etioldiagny~meaninit+meandelta+meanlat+meanconvel+meandilvel+meant75+age+sex,data=dpupadvadmix,family="binomial")
+#predictionadvadmixasspa <- predict(modeladvadmixasspa, dpupadvadmix, 
+#                                type="response")
+#predsadvadmixasspa<-ifelse(predictionadvadmixasspa>0.5,1,0)
+#rocadvadmixasspa <- roc( dpupadvadmix$etioldiagny, predictionadvadmixasspa,subset=(etioldiagny==1|etioldiagny==0))
+#cadvadmixasspa<-confusionMatrix(table(predsadvadmixasspa, dpupadvadmix$etioldiagny),positive="1")
+summ(modeladvadmixasspa,vifs=T,exp=T, confint=T,digits=5)
+aucci(rocadvadmixasspa)
+cadvadmixasspa
+```
+
+#### AUC 10-fold 1000 times cross-validation for sparse model (including sex and age)
+
+```{r,results='asis'}
+#set.seed(123)
+#cv.labelsadvadmixroc<-as.factor(dpupadvadmix$etioldiagabb)
+#cv.10.foldsadvadmixroc<-createMultiFolds(cv.labelsadvadmixroc,k=10,times=1000)
+#trainControladvadmixroc <- trainControl(
+#  method="repeatedcv",
+#  number=10,repeats=1000,
+#  index=cv.10.foldsadvadmixroc,
+#  classProbs = TRUE,
+#  summaryFunction = twoClassSummary
+#)
+
+# Train the model
+#modelcvadvadmixroc <- train(etioldiagabb~meaninit+meandelta+meanlat+meanconvel+meandilvel+meant75+age+sex,data=dpupadvadmix,
+#                         method='glm',
+#                         family="binomial",
+#                         metric = "ROC",
+#                         trControl = trainControladvadmixroc)
+
+print(modelcvadvadmixroc)
+```
+
+#### Cut point analysis maximising specificity for a minimum of 85 % sensitivity
+
+```{r,results='markup'}
+#Cut point analysis sensitivity minimal 0.85
+#cpadmixasspa<-cutpointr(as.numeric(predictionadvadmixasspa),dpupadvadmix$etioldiagny,method = maximize_metric, metric = spec_constrain,constrain_metric = #sensitivity,
+#                        min_constrain = 0.85)
+
+
+summary(cpadmixasspa)
+print(cpadmixasspa)
+```
+
+#### Cut point analysis maximising sensitivity for a minimum of 85 % specificity
+
+```{r,results='markup'}
+#Cut point analysis specifictity minimum 0.85
+#cpspeadvadmixasspa<-cutpointr(as.numeric(predictionadvadmixasspa),dpupadvadmix$etioldiagny,method = maximize_metric, metric = sens_constrain,constrain_metric #= specificity,
+#                           min_constrain = 0.85)
+
+summary(cpspeadvadmixasspa)
+print(cpspeadvadmixasspa)
+```
+
+#### AD vs. Mixed (Mixed Ad+VaD and VaD) (with all qLRP parameters, sex and age included)
+
+```{r,results='asis'}
+#modeladvadmixas<-glm(etioldiagny~meaninit+meanend+meandelta+meanlat+meanconvel+meanmaxcv+meandilvel+meant75+age+sex,data=dpupadvadmix,family="binomial")
+#predictionadvadmixas <- predict(modeladvadmixas, dpupadvadmix, 
+#                              type="response")
+#predsadvadmixas<-ifelse(predictionadvadmixas>0.5,1,0)
+#rocadvadmixas <- roc( dpupadvadmix$etioldiagny, predictionadvadmixas,subset=(etioldiagny==1|etioldiagny==0))
+summ(modeladvadmixas,vifs=T,exp=T, confint=T,digits=5)
+aucci(rocadvadmixas)
+#cadvadmixas<-confusionMatrix(table(predsadvadmixas, dpupadvadmix$etioldiagny),positive="1")
+cadvadmixas
+```
+
+
+#### AD vs.  Mixed (Mixed Ad+VaD and VaD) (sparse qLRP parameters (excluding peak constriction and max ), with sex and age) (with splines, non-linear)
+
+```{r,results='asis'}
+#modeladvadmixasspacs<-glm(etioldiagny~ns(meaninit,df=6)+ns(meandelta,df=6)+ns(meanlat,df=6)+ns(meanconvel,df=6)+ns(meandilvel,df=6)+ns(meant75,df=6)+age+sex,data=dpupadvadmix,family="binomial")
+#predictionadvadmixasspacs <- predict(modeladvadmixasspacs, dpupadvadmix, 
+#                                   type="response")
+#predsadvadmixasspacs<-ifelse(predictionadvadmixasspacs>0.5,1,0)
+#rocadvadmixasspacs <- roc( dpupadvadmix$etioldiagny, predictionadvadmixasspacs,subset=(etioldiagny==1|etioldiagny==0))
+#cadvadmixasspacs<-confusionMatrix(table(predsadvadmixasspacs, dpupadvadmix$etioldiagny),positive="1")
+summ(modeladvadmixasspacs,vifs=T,exp=T, confint=T,digits=5)
+aucci(rocadvadmixasspacs)
+cadvadmixasspacs
+```
+
+### AD vs.Vascular dementia (pure vascular)
+
+#### AD vs.Vascular dementia (pure vascular) (with all qLRP parameters, sex and age not included)
+
+```{r,results='asis'}
+#modeladvad<-glm(etioldiagny~meaninit+meanend+meandelta+meanlat+meanconvel+meanmaxcv+meandilvel+meant75,data=dpupadvad,family="binomial")
+#predictionadvad <- predict(modeladvad, dpupadvad, 
+#                          type="response")
+#predsadvad<-ifelse(predictionadvad>0.5,1,0)
+#rocadvad <- roc( dpupadvad$etioldiagny, predictionadvad,subset=(etioldiagny==1|etioldiagny==0))
+#cadvad<-confusionMatrix(table(predsadvad, dpupadvad$etioldiagny),positive="1")
+summ(modeladvad,vifs=T,exp=T, confint=T,digits=5)
+aucci(rocadvad)
+cadvad
+```
+
+#### AD vs.Vascular dementia (pure vascular (sparse qLRP parameters (excluding peak constriction and max ), with sex and age)
+
+```{r,results='asis'}
+#modeladvadasspa<-glm(etioldiagny~meaninit+meandelta+meanlat+meanconvel+meandilvel+meant75+age+sex,data=dpupadvad,family="binomial")
+#predictionadvadasspa <- predict(modeladvadasspa, dpupadvad, 
+#                             type="response")
+#predsadvadasspa<-ifelse(predictionadvadasspa>0.5,1,0)
+#rocadvadasspa <- roc( dpupadvad$etioldiagny, predictionadvadasspa,subset=(etioldiagny==1|etioldiagny==0))
+#cadvadasspa<-confusionMatrix(table(predsadvadasspa, dpupadvad$etioldiagny),positive="1")
+
+
+summ(modeladvadasspa,exp=T,vifs=T, confint=T,digits=5)
+aucci(rocadvadasspa)
+cadvadasspa
+```
+
+#### AUC 10-fold 1000 times cross-validation for sparse model (including sex and age)
+
+```{r,results='asis'}
+#set.seed(12346)
+#cv.labelsadvad<-as.factor(dpupadvad$etioldiagny)
+#cv.10.foldsadvad<-createMultiFolds(cv.labelsadvad,k=10,times=1000)
+#ctrl.advad<-trainControl(method="repeatedcv",number=10,repeats=1000,index=cv.10.foldsadvad)
+#Divide processors
+#cl<-makeCluster(3,type="SOCK")
+#registerDoSNOW(cl)
+# Train the model
+#modelcvadvad <- train(as.factor(etioldiagny)~meaninit+meandelta+meanlat+meanconvel+meandilvel+meant75+age+sex,data=dpupadvad, method='glm',family="binomial",
+#                     trControl = ctrl.advad)
+print(modelcvadvadroc)
+```
+
+#### Cut point analysis maximising specificity for a minimum of 85 % sensitivity
+
+```{r,results='markup'}
+#Cut point analysis sensitivity minimal 0.85
+#cpadvadasspa<-cutpointr(as.numeric(predictionadvadasspa),dpupadvad$etioldiagny,method = maximize_metric, metric = spec_constrain,constrain_metric = sensitivity,
+#                        min_constrain = 0.85)
+
+summary(cpadvadasspa)
+print(cpadvadasspa)
+```
+
+
+#### Cut point analysis maximising sensitivity for a minimum of 85 % specificity
+
+```{r,results='markup'}
+#Cut point analysis specifictity minimum 0.85
+#cpspeadvadasspa<-cutpointr(as.numeric(predictionadvadasspa),dpupadvad$etioldiagny,method = maximize_metric, metric = sens_constrain,constrain_metric = specificity,
+#                           min_constrain = 0.85)
+
+summary(cpspeadvadasspa)
+print(cpspeadvadasspa)
+```
+
+#### AD vs. Vascular dementia (pure vascular) (sparse qLRP parameters (excluding peak constriction and max ), with sex and age) (with splines, non-linear) 
+
+### Model did not converge due to too many predictors !
+
+
+## Sensitivity analyses
+
+The same models (sparse models with age and sex as covariates) are fitted in groups dichotomized with respect to  use of drugs with pupillary influence/presence of (mild), chronic eye diseases, pseudophaky, syndrome diagnosis (MCI vs. dementia) and the AUROC values are compared.
+
+
+
+### Diagnostic models for use of drugs with pupillary influence dichomotization (no and yes)
+
+#### AD vs. healthy drugs with pupillary influence No
+
+```{r,results='asis'}
+summ(modeladhcasspapdno,vifs=T, confint=T,digits=5)
+auc(rocadhcasspapdno)
+aucci(rocadhcasspapdno)
+cadhcasspapdno
+```
+
+#### AD vs. healthy drugs with pupillary influence Yes
+
+Model showed "Warning message:
+glm.fit: fitted probabilities numerically 0 or 1 occurred 
+
+
+#### AD vs. DLB drugs with pupillary influence No
+
+```{r,results='asis'}
+summ(modeladdlbasspapdno,vifs=T, confint=T,digits=5)
+auc(rocaddlbasspapdno)
+aucci(rocaddlbasspapdno)
+caddlbasspapdno
+```
+
+#### AD vs. DLB drugs with pupillary influence Yes
+
+```{r,results='asis'}
+summ(modeladdlbasspapdyes,vifs=T, confint=T,digits=5)
+auc(rocaddlbasspapdyes)
+aucci(rocaddlbasspapdyes)
+caddlbasspapdyes
+```
+
+#### AD vs. Mixed (Ad+VaD and pure VaD) drugs with pupillary influence No
+
+```{r,results='asis'}
+summ(modeladvadmixasspapdno,vifs=T, confint=T,digits=5)
+auc(rocadvadmixasspapdno)
+aucci(rocadvadmixasspapdno)
+cadvadmixasspapdno
+```
+
+#### AD vs. Mixed (Ad+VaD and pure VaD) drugs with pupillary influence Yes
+
+```{r,results='asis'}
+summ(modeladvadmixasspapdyes,vifs=T, confint=T,digits=5)
+auc(rocadvadmixasspapdyes)
+aucci(rocadvadmixasspapdyes)
+cadvadmixasspapdyes
+```
+
+#### AD vs. Vascular dementia (VaD) drugs with pupillary influence No
+
+```{r,results='asis'}
+summ(modeladvadasspapdno,vifs=T, confint=T,digits=5)
+auc(rocadvadasspapdno)
+aucci(rocadvadasspapdno)
+cadvadasspapdno
+```
+
+#### AD vs. Vascular dementia (VaD) drugs with pupillary influence Yes
+
+
+### Model did not converge!!
+
+
+### Diagnostic models for presence of (mild), chronic eye diseases dichomotization (no and yes)
+
+#### AD vs. healthy presence of mild,chronic eye disease (e.g., mild glaucoma/cataract) No
+
+```{r,results='asis'}
+summ(modeladhcasspaodno,vifs=T, confint=T,digits=5)
+auc(rocadhcasspaodno)
+aucci(rocadhcasspaodno)
+cadhcasspaodno
+```
+
+#### AD vs. healthy presence of mild,chronic eye disease (e.g., mild glaucoma/cataract) Yes
+
+```{r,results='asis'}
+summ(modeladhcasspaodyes,vifs=T, confint=T,digits=5)
+auc(rocadhcasspaodyes)
+aucci(rocadhcasspaodyes)
+cadhcasspaodyes
+```
+
+#### AD vs. DLB presence of mild,chronic eye disease (e.g., mild glaucoma/cataract) No
+
+```{r,results='asis'}
+summ(modeladdlbasspaodno,vifs=T, confint=T,digits=5)
+auc(rocaddlbasspaodno)
+aucci(rocaddlbasspaodno)
+caddlbasspaodno
+```
+
+#### AD vs. DLB presence of mild,chronic eye disease (e.g., mild glaucoma/cataract) Yes
+
+```{r,results='asis'}
+summ(modeladdlbasspaodyes,vifs=T, confint=T,digits=5)
+auc(rocaddlbasspaodyes)
+aucci(rocaddlbasspaodyes)
+caddlbasspaodyes
+```
+
+#### AD vs. Mixed (Ad+VaD and pure VaD) presence of mild,chronic eye disease (e.g., mild glaucoma/cataract) No
+
+```{r,results='asis'}
+summ(modeladvadmixasspaodno,vifs=T, confint=T,digits=5)
+auc(rocadvadmixasspaodno)
+aucci(rocadvadmixasspaodno)
+cadvadmixasspaodno
+```
+
+#### AD vs. Mixed (Ad+VaD and pure VaD) presence of mild,chronic eye disease (e.g., mild glaucoma/cataract) Yes
+
+```{r,results='asis'}
+summ(modeladvadmixasspaodyes,vifs=T, confint=T,digits=5)
+auc(rocadvadmixasspaodyes)
+aucci(rocadvadmixasspaodyes)
+cadvadmixasspaodyes
+```
+
+#### AD vs. Vascular dementia (VaD) presence of mild,chronic eye disease (e.g., mild glaucoma/cataract) No
+
+```{r,results='asis'}
+summ(modeladvadasspaodno,vifs=T, confint=T,digits=5)
+auc(rocadvadasspaodno)
+aucci(rocadvadasspaodno)
+cadvadasspaodno
+```
+
+#### AD vs. Vascular dementia (VaD) presence of mild,chronic eye disease (e.g., mild glaucoma/cataract) Yes
+
+```{r,results='asis'}
+summ(modeladvadasspaodyes,vifs=T, confint=T,digits=5)
+auc(rocadvadasspaodyes)
+aucci(rocadvadasspaodyes)
+cadvadasspaodyes
+```
+
+### Diagnostic models for pseudophaky dichomotization (no and yes)
+
+#### AD vs. healthy pseudophaky surgery No
+
+```{r,results='asis'}
+summ(modeladhcasspappno,vifs=T, confint=T,digits=5)
+auc(rocadhcasspappno)
+aucci(rocadhcasspappno)
+cadhcasspappno
+```
+
+#### AD vs. healthy pseudophaky surgery Yes
+
+```{r,results='asis'}
+summ(modeladhcasspappyes,vifs=T, confint=T,digits=5)
+auc(rocadhcasspappyes)
+aucci(rocadhcasspappyes)
+cadhcasspappyes
+```
+
+#### AD vs. DLB pseudophaky surgery No
+
+```{r,results='asis'}
+summ(modeladdlbasspappno,vifs=T, confint=T,digits=5)
+auc(rocaddlbasspappno)
+aucci(rocaddlbasspappno)
+caddlbasspappno
+```
+
+#### AD vs. DLB pseudophaky surgery Yes
+
+```{r,results='asis'}
+summ(modeladdlbasspappyes,vifs=T, confint=T,digits=5)
+auc(rocaddlbasspappyes)
+aucci(rocaddlbasspappyes)
+caddlbasspappyes
+```
+
+#### AD vs. Mixed (Ad+VaD and pure VaD) pseudophaky surgery No
+
+```{r,results='asis'}
+summ(modeladvadmixasspappno,vifs=T, confint=T,digits=5)
+auc(rocadvadmixasspappno)
+aucci(rocadvadmixasspappno)
+cadvadmixasspappno
+```
+
+#### AD vs. Mixed (Ad+VaD and pure VaD) pseudophaky surgery Yes
+
+```{r,results='asis'}
+summ(modeladvadmixasspappyes,vifs=T, confint=T,digits=5)
+auc(rocadvadmixasspappyes)
+aucci(rocadvadmixasspappyes)
+cadvadmixasspappyes
+```
+
+#### AD vs. Vascular dementia (VaD) pseudophaky surgery No
+
+```{r,results='asis'}
+summ(modeladvadasspappno,vifs=T, confint=T,digits=5)
+auc(rocadvadasspappno)
+aucci(rocadvadasspappno)
+cadvadasspappno
+```
+
+#### AD vs. Vascular dementia (VaD) pseudophaky surgery Yes
+
+```{r,results='asis'}
+summ(modeladvadasspappyes,vifs=T, confint=T,digits=5)
+auc(rocadvadasspappyes)
+aucci(rocadvadasspappyes)
+cadvadasspappyes
+```
+
+### Diagnostic models for syndrome diagnosis (MCI vs. dementia) dichomotization (MCI and dementia)
+
+#### AD vs. healthy MCI
+
+```{r,results='asis'}
+summ(modeladhcasspamci,vifs=T, confint=T,digits=5)
+auc(rocadhcasspamci)
+aucci(rocadhcasspamci)
+cadhcasspamci
+```
+
+#### AD vs. healthy Dementia
+
+```{r,results='asis'}
+summ(modeladhcasspadem,vifs=T, confint=T,digits=5)
+auc(rocadhcasspadem)
+aucci(rocadhcasspadem)
+cadhcasspadem
+```
+
+#### AD vs. DLB MCI
+
+```{r,results='asis'}
+summ(modeladdlbasspamci,vifs=T, confint=T,digits=5)
+auc(rocaddlbasspamci)
+aucci(rocaddlbasspamci)
+caddlbasspamci
+```
+
+#### AD vs. DLB Dementia
+
+```{r,results='asis'}
+summ(modeladdlbasspadem,vifs=T, confint=T,digits=5)
+auc(rocaddlbasspadem)
+aucci(rocaddlbasspadem)
+caddlbasspadem
+```
+
+#### AD vs. Mixed (Ad+VaD and pure VaD) MCI
+
+```{r,results='asis'}
+summ(modeladvadmixasspamci,vifs=T, confint=T,digits=5)
+auc(rocadvadmixasspamci)
+aucci(rocadvadmixasspamci)
+cadvadmixasspamci
+```
+
+#### AD vs. Mixed (Ad+VaD and pure VaD) Dementia
+
+```{r,results='asis'}
+summ(modeladvadmixasspadem,vifs=T, confint=T,digits=5)
+auc(rocadvadmixasspadem)
+aucci(rocadvadmixasspadem)
+cadvadmixasspadem
+```
+
+#### AD vs. Vascular dementia (VaD) MCI
+
+```{r,results='asis'}
+summ(modeladvadasspamci,vifs=T, confint=T,digits=5)
+auc(rocadvadasspamci)
+aucci(rocadvadasspamci)
+cadvadasspamci
+```
+
+#### AD vs. Vascular dementia (VaD) Dementia
+
+```{r,results='asis'}
+summ(modeladvadasspadem,vifs=T, confint=T,digits=5)
+auc(rocadvadasspadem)
+aucci(rocadvadasspadem)
+cadvadasspadem
+```
+
+
+
+#Assumptions check for logistic regression models
+
+
+## AD vs. healthy sparse model (Model 2)
+
+```{r,results='asis'}
+#Non-linear check
+modeladhcasspadilvel<-glm(etioldiagny~meaninit+meandelta+meanlat+meanconvel+meandilvel+I(meandilvel^2)+meant75+age+sex,data=dpupadhealthy,family="binomial")
+modeladhcasspadilvel
+modeladhcasspadelta<-glm(etioldiagny~meaninit+meandelta+I(meandelta^2)+meanlat+meanconvel+meandilvel+meant75+age+sex,data=dpupadhealthy,family="binomial")
+modeladhcasspadelta
+#Assumptions check
+dpupadhealthy |> 
+  mutate(comp_res = coef(modeladhcasspa)["meaninit"]*meaninit + residuals(modeladhcasspa, type = "working")) |> 
+  ggplot(aes(x = meaninit, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadhealthy |> 
+  mutate(comp_res = coef(modeladhcasspa)["meanlat"]*meanlat + residuals(modeladhcasspa, type = "working")) |> 
+  ggplot(aes(x = meanlat, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadhealthy |> 
+  mutate(comp_res = coef(modeladhcasspa)["meandelta"]*meandelta + residuals(modeladhcasspa, type = "working")) |> 
+  ggplot(aes(x = meandelta, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadhealthy |> 
+  mutate(comp_res = coef(modeladhcasspa)["meanconvel"]*meanconvel + residuals(modeladhcasspa, type = "working")) |> 
+  ggplot(aes(x = meanconvel, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadhealthy |> 
+  mutate(comp_res = coef(modeladhcasspa)["meandilvel"]*meandilvel + residuals(modeladhcasspa, type = "working")) |> 
+  ggplot(aes(x = meandilvel, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadhealthy |> 
+  mutate(comp_res = coef(modeladhcasspa)["meant75"]*meant75 + residuals(modeladhcasspa, type = "working")) |> 
+  ggplot(aes(x = meant75, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadhealthy |> 
+  mutate(comp_res = coef(modeladhcasspa)["age"]*age + residuals(modeladhcasspa, type = "working")) |> 
+  ggplot(aes(x = age, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+#Check outlier influence
+
+dpupadhealthy <-
+  dpupadhealthy |> 
+  mutate(dffits = dffits(modeladhcasspa))
+
+dpupadhealthy |> 
+  mutate(obs_number = row_number(),
+         large = ifelse(abs(dffits) > 2*sqrt(length(coef(modeladhcasspa))/nobs(modeladhcasspa)),
+                        "red", "black")) |> 
+                          ggplot(aes(obs_number, dffits, color = large)) +
+  geom_point() + 
+  geom_hline(yintercept = c(-1,1) * 2*sqrt(length(coef(modeladhcasspa))/nobs(modeladhcasspa)), color = "red") +
+  scale_color_identity()
+dpupadhealthy <- 
+  dfbetas(modeladhcasspa) |> 
+  as.data.frame() |> 
+  rename_with(~ paste0("dfb_", .x)) |> 
+  cbind(dpupadhealthy)
+
+dpupadhealthy |> 
+  mutate(obs_number = row_number()) |> 
+  pivot_longer(cols = starts_with("dfb")) |> 
+  mutate(large = ifelse(abs(value) > 2/sqrt(nobs(modeladhcasspa)), 
+                        "red", "black")) |> 
+                          ggplot(aes(obs_number, value, color = large)) + 
+  geom_point() + 
+  geom_hline(yintercept = c(-1,1) * 2/sqrt(nobs(modeladhcasspa)), color = "red") +
+  facet_wrap(~ name) + 
+  scale_color_identity()
+
+```
+
+
+
+## AD vs. DLB sparse model (Model 2)
+
+```{r,results='asis'}
+#Assumptions check
+dpupaddlb |> 
+  mutate(comp_res = coef(modeladdlbasspa)["meaninit"]*meaninit + residuals(modeladdlbasspa, type = "working")) |> 
+  ggplot(aes(x = meaninit, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupaddlb |> 
+  mutate(comp_res = coef(modeladdlbasspa)["meanlat"]*meanlat + residuals(modeladdlbasspa, type = "working")) |> 
+  ggplot(aes(x = meanlat, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupaddlb |> 
+  mutate(comp_res = coef(modeladdlbasspa)["meandelta"]*meandelta + residuals(modeladdlbasspa, type = "working")) |> 
+  ggplot(aes(x = meandelta, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupaddlb |> 
+  mutate(comp_res = coef(modeladdlbasspa)["meanconvel"]*meanconvel + residuals(modeladdlbasspa, type = "working")) |> 
+  ggplot(aes(x = meanconvel, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupaddlb |> 
+  mutate(comp_res = coef(modeladdlbasspa)["meandilvel"]*meandilvel + residuals(modeladdlbasspa, type = "working")) |> 
+  ggplot(aes(x = meandilvel, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupaddlb |> 
+  mutate(comp_res = coef(modeladdlbasspa)["meant75"]*meant75 + residuals(modeladdlbasspa, type = "working")) |> 
+  ggplot(aes(x = meant75, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupaddlb |> 
+  mutate(comp_res = coef(modeladdlbasspa)["age"]*age + residuals(modeladdlbasspa, type = "working")) |> 
+  ggplot(aes(x = age, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+#Check outlier influence
+
+dpupaddlb <-
+  dpupaddlb |> 
+  mutate(dffits = dffits(modeladdlbasspa))
+
+dpupaddlb |> 
+  mutate(obs_number = row_number(),
+         large = ifelse(abs(dffits) > 2*sqrt(length(coef(modeladdlbasspa))/nobs(modeladdlbasspa)),
+                        "red", "black")) |> 
+                          ggplot(aes(obs_number, dffits, color = large)) +
+  geom_point() + 
+  geom_hline(yintercept = c(-1,1) * 2*sqrt(length(coef(modeladdlbasspa))/nobs(modeladdlbasspa)), color = "red") +
+  scale_color_identity()
+dpupaddlb <- 
+  dfbetas(modeladdlbasspa) |> 
+  as.data.frame() |> 
+  rename_with(~ paste0("dfb_", .x)) |> 
+  cbind(dpupaddlb)
+
+dpupaddlb |> 
+  mutate(obs_number = row_number()) |> 
+  pivot_longer(cols = starts_with("dfb")) |> 
+  mutate(large = ifelse(abs(value) > 2/sqrt(nobs(modeladdlbasspa)), 
+                        "red", "black")) |> 
+                          ggplot(aes(obs_number, value, color = large)) + 
+  geom_point() + 
+  geom_hline(yintercept = c(-1,1) * 2/sqrt(nobs(modeladdlbasspa)), color = "red") +
+  facet_wrap(~ name) + 
+  scale_color_identity()
+
+```
+
+
+
+## AD vs. Mixed (AD+ VaD) sparse model (Model 2)
+
+```{r,results='asis'}
+#Assumptions check
+dpupadvadmix |> 
+  mutate(comp_res = coef(modeladvadmixasspa)["meaninit"]*meaninit + residuals(modeladvadmixasspa, type = "working")) |> 
+  ggplot(aes(x = meaninit, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvadmix |> 
+  mutate(comp_res = coef(modeladvadmixasspa)["meanlat"]*meanlat + residuals(modeladvadmixasspa, type = "working")) |> 
+  ggplot(aes(x = meanlat, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvadmix |> 
+  mutate(comp_res = coef(modeladvadmixasspa)["meandelta"]*meandelta + residuals(modeladvadmixasspa, type = "working")) |> 
+  ggplot(aes(x = meandelta, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvadmix |> 
+  mutate(comp_res = coef(modeladvadmixasspa)["meanconvel"]*meanconvel + residuals(modeladvadmixasspa, type = "working")) |> 
+  ggplot(aes(x = meanconvel, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvadmix |> 
+  mutate(comp_res = coef(modeladvadmixasspa)["meandilvel"]*meandilvel + residuals(modeladvadmixasspa, type = "working")) |> 
+  ggplot(aes(x = meandilvel, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvadmix |> 
+  mutate(comp_res = coef(modeladvadmixasspa)["meant75"]*meant75 + residuals(modeladvadmixasspa, type = "working")) |> 
+  ggplot(aes(x = meant75, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvadmix |> 
+  mutate(comp_res = coef(modeladvadmixasspa)["age"]*age + residuals(modeladvadmixasspa, type = "working")) |> 
+  ggplot(aes(x = age, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+#Check outlier influence
+
+dpupadvadmix <-
+  dpupadvadmix |> 
+  mutate(dffits = dffits(modeladvadmixasspa))
+
+dpupadvadmix |> 
+  mutate(obs_number = row_number(),
+         large = ifelse(abs(dffits) > 2*sqrt(length(coef(modeladvadmixasspa))/nobs(modeladvadmixasspa)),
+                        "red", "black")) |> 
+                          ggplot(aes(obs_number, dffits, color = large)) +
+  geom_point() + 
+  geom_hline(yintercept = c(-1,1) * 2*sqrt(length(coef(modeladvadmixasspa))/nobs(modeladvadmixasspa)), color = "red") +
+  scale_color_identity()
+dpupadvadmix <- 
+  dfbetas(modeladvadmixasspa) |> 
+  as.data.frame() |> 
+  rename_with(~ paste0("dfb_", .x)) |> 
+  cbind(dpupadvadmix)
+
+dpupadvadmix |> 
+  mutate(obs_number = row_number()) |> 
+  pivot_longer(cols = starts_with("dfb")) |> 
+  mutate(large = ifelse(abs(value) > 2/sqrt(nobs(modeladvadmixasspa)), 
+                        "red", "black")) |> 
+                          ggplot(aes(obs_number, value, color = large)) + 
+  geom_point() + 
+  geom_hline(yintercept = c(-1,1) * 2/sqrt(nobs(modeladvadmixasspa)), color = "red") +
+  facet_wrap(~ name) + 
+  scale_color_identity()
+
+
+```
+
+
+## AD vs. Vascular dementia sparse model (Model 2)
+
+```{r,results='asis'}
+#Assumptions check
+dpupadvad |> 
+  mutate(comp_res = coef(modeladvadasspa)["meaninit"]*meaninit + residuals(modeladvadasspa, type = "working")) |> 
+  ggplot(aes(x = meaninit, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvad |> 
+  mutate(comp_res = coef(modeladvadasspa)["meanlat"]*meanlat + residuals(modeladvadasspa, type = "working")) |> 
+  ggplot(aes(x = meanlat, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvad |> 
+  mutate(comp_res = coef(modeladvadasspa)["meandelta"]*meandelta + residuals(modeladvadasspa, type = "working")) |> 
+  ggplot(aes(x = meandelta, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvad |> 
+  mutate(comp_res = coef(modeladvadasspa)["meanconvel"]*meanconvel + residuals(modeladvadasspa, type = "working")) |> 
+  ggplot(aes(x = meanconvel, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvad |> 
+  mutate(comp_res = coef(modeladvadasspa)["meandilvel"]*meandilvel + residuals(modeladvadasspa, type = "working")) |> 
+  ggplot(aes(x = meandilvel, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvad |> 
+  mutate(comp_res = coef(modeladvadasspa)["meant75"]*meant75 + residuals(modeladvadasspa, type = "working")) |> 
+  ggplot(aes(x = meant75, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+dpupadvad |> 
+  mutate(comp_res = coef(modeladvadasspa)["age"]*age + residuals(modeladvadasspa, type = "working")) |> 
+  ggplot(aes(x = age, y = comp_res)) +
+  geom_point() +
+  geom_smooth(color = "red", method = "lm", linetype = 2, se = F) +
+  geom_smooth(se = F)
+#Check outlier influence
+
+dpupadvad <-
+  dpupadvad |> 
+  mutate(dffits = dffits(modeladvadasspa))
+
+dpupadvad |> 
+  mutate(obs_number = row_number(),
+         large = ifelse(abs(dffits) > 2*sqrt(length(coef(modeladvadasspa))/nobs(modeladvadasspa)),
+                        "red", "black")) |> 
+                          ggplot(aes(obs_number, dffits, color = large)) +
+  geom_point() + 
+  geom_hline(yintercept = c(-1,1) * 2*sqrt(length(coef(modeladvadasspa))/nobs(modeladvadasspa)), color = "red") +
+  scale_color_identity()
+dpupadvad <- 
+  dfbetas(modeladvadasspa) |> 
+  as.data.frame() |> 
+  rename_with(~ paste0("dfb_", .x)) |> 
+  cbind(dpupadvad)
+
+dpupadvad |> 
+  mutate(obs_number = row_number()) |> 
+  pivot_longer(cols = starts_with("dfb")) |> 
+  mutate(large = ifelse(abs(value) > 2/sqrt(nobs(modeladvadasspa)), 
+                        "red", "black")) |> 
+                          ggplot(aes(obs_number, value, color = large)) + 
+  geom_point() + 
+  geom_hline(yintercept = c(-1,1) * 2/sqrt(nobs(modeladvadasspa)), color = "red") +
+  facet_wrap(~ name) + 
+  scale_color_identity()
+
+```
